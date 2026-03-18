@@ -1,0 +1,41 @@
+info:
+  name: 02_Auth-WrongPass
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{URL}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "student",
+        "password": "whatIsPassWord?"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: bru.setEnvVar("jwt_token", null);
+    - type: after-response
+      code: |-
+        test("Status code is 401 Unauthorized", function() {
+            expect(res.getStatus()).to.equal(401);
+        });
+
+        test("Should return error message for Invalid login request", function() {
+          const body = res.getBody();
+          // ตรวจสอบว่ามี field ที่ระบุถึงความผิดพลาด
+          expect(body).to.have.property('error');
+          expect(body.error).to.equal("Invalid login")
+        });
+
+        bru.runner.setNextRequest("03_Order-NoAuth");
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

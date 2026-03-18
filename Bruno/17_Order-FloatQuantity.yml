@@ -1,0 +1,43 @@
+info:
+  name: 17_Order-FloatQuantity
+  type: http
+  seq: 17
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 2,
+        "quantity": 1.5
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 400", function() {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        const body = res.getBody();
+        test("Response should contain error property", function() {
+          expect(body).to.have.property("error");
+          expect(body.error).to.not.be.empty;
+        });
+
+        test("Error message should indicate invalid quantity type", function() {
+          const errorMsg = body.error.toLowerCase();
+          expect(errorMsg).to.match(/quantity|invalid|must be|integer|whole|number/i);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

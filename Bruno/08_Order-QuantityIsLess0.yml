@@ -1,0 +1,38 @@
+info:
+  name: 08_Order-QuntityIsLess0
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 1,
+        "quantity": 1
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 400", function() {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        const body = res.getBody();
+        test("Response should contain error and error massage", function() {
+          expect(body).to.have.property("error");
+          expect(body.error).to.equal("Out of stock");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,46 @@
+info:
+  name: 04_Auth-Correct
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{URL}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "username": "student",
+        "password": "hungry"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code is 200", function() {
+            expect(res.getStatus()).to.equal(200);
+        });
+
+        test("should have accessToken and expiresIn", function () {
+          const body = res.getBody();
+          
+          expect(body).to.have.property("accessToken");
+          expect(body).to.have.property("expiresIn");
+        });
+
+
+        const jwt_token = res.getBody().accessToken;
+        if (jwt_token) {
+            bru.setEnvVar("jwt_token", jwt_token); 
+            console.log("Token:", bru.getEnvVar("jwt_token"));
+        }
+
+        bru.runner.setNextRequest("05_Order-ValidAuth");
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,59 @@
+info:
+  name: 05_Order-Valid
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  headers:
+    - name: Authorization
+      value: "Bearer {{jwt_token}} "
+      disabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": {{ValidID}},
+        "quantity": 1
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code is 200 Success", function() {
+            expect(res.getStatus()).to.equal(200);
+        });
+
+        const body = res.getBody();
+        test("Should has ID field", function() {
+          expect(body).to.have.property("orderId");
+        });
+        test("Should has status field", function() {
+          expect(body).to.have.property("status");
+        });
+        test("Should has totalPrice field", function() {
+          expect(body).to.have.property("totalPrice");
+        });
+
+        test("totalPrice Feild return correct value (item price × quantity) = 40", function() {
+          expect(body.totalPrice).to.equal(40);
+        });
+
+        test("totalPrice should be a number", function() {
+          expect(body.totalPrice).to.be.a('number');
+        });
+
+        test("totalPrice should be greater than 0", function() {
+          expect(body.totalPrice).to.be.greaterThan(0);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

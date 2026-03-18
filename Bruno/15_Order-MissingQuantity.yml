@@ -1,0 +1,31 @@
+info:
+  name: 15_Order-MissingQuantity
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 2
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 400 or 500", function() {
+          expect(res.getStatus()).to.be.oneOf([400, 500]);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

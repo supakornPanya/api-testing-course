@@ -1,0 +1,43 @@
+info:
+  name: 10_Order-ZeroQuantity
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 2,
+        "quantity": 0
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 400", function() {
+          expect(res.getStatus()).to.equal(400);
+        });
+
+        const body = res.getBody();
+        test("Response should contain error property", function() {
+          expect(body).to.have.property("error");
+          expect(body.error).to.not.be.empty;
+        });
+
+        test("Error should be a validation error for zero quantity", function() {
+          const errorMsg = body.error.toLowerCase();
+          expect(errorMsg).to.match(/quantity|invalid|must be|greater|positive/i);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

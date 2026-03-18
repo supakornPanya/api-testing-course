@@ -1,0 +1,12 @@
+name: Auntie Som Lab
+variables:
+  - name: URL_Local
+    value: http://localhost:5000
+  - name: ValidID
+    value: "1"
+  - name: URL
+    value: https://auntiesom.ngixx.me
+  - name: jwt_token
+    value: ""
+  - name: InvalidID
+    value: "99"

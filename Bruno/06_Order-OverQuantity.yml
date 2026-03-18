@@ -1,0 +1,52 @@
+info:
+  name: 06_Order-OverQuantity
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 1,
+        "quantity": 99
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 422", function() {
+          expect(res.getStatus()).to.equal(422);
+        });
+
+        // Check Content-Type is JSON before parsing body
+        const contentType = res.getHeader("Content-Type");
+
+        if (contentType && contentType.includes("application/json")) {
+          const body = res.getBody();
+          test("Response should contain error details", function() {
+            expect(body).to.have.property("message");
+            expect(body.message).to.not.be.empty;
+          });
+          test("Should contain quantity validation error", function() {
+            expect(body.message.toLowerCase()).to.include("quantity");
+          });
+        } else {
+          test("Should return a valid error response", function() {
+            expect(res.getStatus()).to.be.oneOf([400, 422]);
+          });
+          console.warn("Response is not JSON. Skipping body validation.");
+        }
+
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

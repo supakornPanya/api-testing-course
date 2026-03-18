@@ -1,0 +1,42 @@
+info:
+  name: 14_Order-InvalidItemId
+  type: http
+  seq: 14
+
+http:
+  method: POST
+  url: "{{URL}}/orders"
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": 999,
+        "quantity": 1
+      }
+  auth:
+    type: bearer
+    token: "{{jwt_token}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        test("Status code should be 404", function() {
+          expect(res.getStatus()).to.equal(404);
+        });
+
+        const body = res.getBody();
+        test("Response should contain error property", function() {
+          expect(body).to.have.property("error");
+          expect(body.error).to.not.be.empty;
+        });
+
+        test("Error message should indicate item not found", function() {
+          expect(body.error).to.equal("Item not found");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
